@@ -49,7 +49,6 @@ def convert_to_png(file_path):
             metadata = load_metadata(file_path)
             metadata.update({
                 "format": "PNG",
-                "file_size": img.size
             })
             
             metadata = update_processing_history(metadata, "convert_to_png", {

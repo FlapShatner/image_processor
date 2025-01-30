@@ -108,7 +108,6 @@ def add_margin_and_border(input_path, output_path, margin_size, border_thickness
             metadata.update({
                 "width": final_image.width,
                 "height": final_image.height,
-                "file_size": final_image.size
             })
             
             metadata = update_processing_history(metadata, "add_margin_and_border", {
