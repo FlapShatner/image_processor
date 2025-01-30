@@ -18,7 +18,7 @@ def get_image_info(image_path):
             "width": img.width,
             "height": img.height,
             "has_transparency": has_transparency,
-            "file_size": os.path.getsize(image_path),
+            "file_size": img.size,
             "processing_history": [],
             "last_modified": datetime.now().isoformat()
         }

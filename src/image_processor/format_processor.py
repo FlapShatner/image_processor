@@ -1,6 +1,10 @@
 from PIL import Image
 import os
-from metadata_handler import load_metadata, save_metadata, update_processing_history
+from image_processor.metadata_handler import load_metadata, save_metadata, update_processing_history
+
+class ImageConversionError(Exception):
+    """Custom exception for image conversion errors"""
+    pass
 
 def is_image(file_path):
     """
@@ -8,7 +12,7 @@ def is_image(file_path):
     """
     try:
         with Image.open(file_path) as img:
-            img.verify()  # Verify that the file is a valid image
+            img.verify()
         return True
     except Exception:
         return False
@@ -16,33 +20,36 @@ def is_image(file_path):
 def convert_to_png(file_path):
     """
     Convert the file to PNG if it is an image and not already in PNG format.
-    If the file is not an image or cannot be converted, do nothing.
+    
+    Args:
+        file_path (str): Path to the image file
+        
+    Returns:
+        str: Path to the converted PNG file
+        
+    Raises:
+        ImageConversionError: If the file is not an image or conversion fails
     """
     if not is_image(file_path):
-        print(f"Skipping non-image file: {file_path}")
-        return
+        raise ImageConversionError(f"Not a valid image file: {file_path}")
 
-    # Load or create metadata
-    metadata = load_metadata(file_path)
+    try:
+        with Image.open(file_path) as img:
+            if img.format == "PNG":
+                return file_path
 
-    with Image.open(file_path) as img:
-        if img.format == "PNG":
-            print(f"File is already in PNG format: {file_path}")
-            return
+            # Create a new file path with a .png extension
+            base_name, _ = os.path.splitext(file_path)
+            output_path = f"{base_name}.png"
 
-        # Create a new file path with a .png extension
-        base_name, _ = os.path.splitext(file_path)
-        output_path = f"{base_name}.png"
-
-        try:
             # Convert and save as PNG
             img.save(output_path, "PNG")
             
             # Update metadata
+            metadata = load_metadata(file_path)
             metadata.update({
-                "filename": os.path.basename(output_path),
                 "format": "PNG",
-                "file_size": os.path.getsize(output_path)
+                "file_size": img.size
             })
             
             metadata = update_processing_history(metadata, "convert_to_png", {
@@ -51,11 +58,11 @@ def convert_to_png(file_path):
             })
             
             save_metadata(output_path, metadata)
-            print(f"Converted {file_path} to PNG: {output_path}")
+            return output_path
             
-        except Exception as e:
-            print(f"Failed to convert {file_path} to PNG: {e}")
+    except Exception as e:
+        raise ImageConversionError(f"Failed to convert {file_path} to PNG: {str(e)}")
 
 # Example usage
-file_path = "example.jpg"  # Replace with your file path
-convert_to_png(file_path)
+# file_path = "example.jpg"  # Replace with your file path
+# convert_to_png(file_path)

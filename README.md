@@ -1,6 +1,15 @@
 # Image Border Processor
 
-A Python tool for adding smooth borders to images with alpha channel support.
+A Python tool for adding smooth borders to images with alpha channel support,
+available both as a library and REST API.
+
+## Features
+
+- Convert images to PNG format
+- Add customizable borders with transparency support
+- Maintain image metadata
+- REST API endpoint for image processing
+- Support for multiple image formats
 
 ## Installation
 
@@ -8,63 +17,91 @@ A Python tool for adding smooth borders to images with alpha channel support.
 pip install -r requirements.txt
 ```
 
-## Usage
-
-```python
-from image_processor import add_smooth_border
-
-input_path = "examples/input/sample.png"
-output_path = "examples/output/result.png"
-border_thickness = 10  # Thickness of the border in pixels
-border_color = (255, 0, 0, 255)  # Red border with full opacity (RGBA)
-
-add_smooth_border(input_path, output_path, border_thickness, border_color)
-```
-
-And here's a basic test file:
-
-```python
-:tests/test_border_processor.py
-import unittest
-from image_processor import add_smooth_border
-import os
-class TestBorderProcessor(unittest.TestCase):
-def test_add_smooth_border(self):
-input_path = "examples/input/sample.png"
-output_path = "examples/output/result.png"
-# Ensure the input file exists
-self.assertTrue(os.path.exists(input_path))
-# Test with red border
-add_smooth_border(input_path, output_path, 10, (255, 0, 0, 255))
-# Check if output file was created
-self.assertTrue(os.path.exists(output_path))
-if name == 'main':
-unittest.main()
-```
-
-This structure provides several benefits:
-
-1. Modular organization with separated source code and tests
-2. Easy package installation with `setup.py`
-3. Clear dependency management with `requirements.txt`
-4. Example directory for sample images
-5. Proper Python package structure with `__init__.py` files
-
-To use this project:
-
-1. Create the directory structure as shown above
-2. Install the requirements:
-
-```bash
-pip install -r requirements.txt
-```
-
-3. Place your input images in the `examples/input` directory
-4. Run the code using the example in the README
-5. Find the processed images in the `examples/output` directory
-
-The project can be installed in development mode using:
+Or install in development mode:
 
 ```bash
 pip install -e .
 ```
+
+## Usage
+
+### As a Library
+
+```python
+from image_processor import add_margin_and_border
+
+input_path = "examples/input/sample.png"
+output_path = "examples/output/result.png"
+margin_size = 200  # Size of transparent margin in pixels
+border_thickness = 100  # Thickness of the border in pixels
+border_color = (255, 255, 255, 255)  # White border with full opacity (RGBA)
+
+add_margin_and_border(input_path, output_path, margin_size, border_thickness, border_color)
+```
+
+### As an API
+
+1. Start the server:
+
+```bash
+python src/run_server.py
+```
+
+2. The API will be available at `http://localhost:8000` with the following
+   endpoints:
+
+- `GET /`: Welcome message
+- `POST /process-image/`: Process an image with the following parameters:
+  - `file`: Image file (multipart/form-data)
+  - `margin_size`: Size of transparent margin in pixels (default: 200)
+  - `border_thickness`: Thickness of the border in pixels (default: 100)
+  - `border_color`: Border color in RGBA format (default: "255,255,255,255")
+
+Example curl request:
+
+```bash
+curl -X POST "http://localhost:8000/process-image/?margin_size=100&border_thickness=50&border_color=255,0,0,255" \
+  -H "accept: application/json" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@/path/to/your/image.jpg"
+```
+
+API documentation is available at:
+
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
+
+## Project Structure
+
+- `src/`
+  - `api/`: FastAPI server and endpoints
+  - `image_processor/`: Core image processing library
+- `examples/`
+  - `input/`: Sample input images
+  - `output/`: Processed output images
+- `tests/`: Unit tests
+
+## Development
+
+1. Create a virtual environment:
+
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+2. Install development dependencies:
+
+```bash
+pip install -e .
+```
+
+3. Run tests:
+
+```bash
+python -m unittest discover tests
+```
+
+## License
+
+MIT
