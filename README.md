@@ -41,13 +41,13 @@ add_margin_and_border(input_path, output_path, margin_size, border_thickness, bo
 
 ### As an API
 
-1. Start the server:
+#### Start the server:
 
 ```bash
 python src/run_server.py
 ```
 
-2. The API will be available at `http://localhost:8000` with the following
+The API will be available at `http://localhost:8000` with the following
    endpoints:
 
 - `GET /`: Welcome message
@@ -86,8 +86,8 @@ API documentation is available at:
 1. Create a virtual environment:
 
 ```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+python -m venv borders
+source borders/bin/activate  # On Windows: borders\Scripts\activate
 ```
 
 2. Install development dependencies:

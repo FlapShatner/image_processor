@@ -8,6 +8,7 @@ class BorderProcessingError(Exception):
     """Custom exception for border processing errors"""
     pass
 
+
 def add_margin_and_border(input_path, output_path, margin_size, border_thickness, border_color):
     """
     Add margin and border to an image.
@@ -59,6 +60,10 @@ def add_margin_and_border(input_path, output_path, margin_size, border_thickness
                 top, bottom = non_transparent[0].min(), non_transparent[0].max()
                 left, right = non_transparent[1].min(), non_transparent[1].max()
 
+            # Check if image is rectangular (no transparency)
+            is_rectangular = np.all(alpha[top:bottom+1, left:right+1] > 0)
+            # is_rectangular = True
+
             # Calculate new dimensions with margin
             new_width = (right - left + 1) + (2 * margin_size)
             new_height = (bottom - top + 1) + (2 * margin_size)
@@ -72,21 +77,26 @@ def add_margin_and_border(input_path, output_path, margin_size, border_thickness
             alpha = np.array(new_image.split()[-1])
             mask = (alpha > 0).astype(np.uint8) * 255
 
-            # Create kernel for border
-            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, 
-                                            (border_thickness, border_thickness))
+            # Create kernel for border - use rectangle for rectangular images, ellipse for others
+            if is_rectangular:
+                kernel = cv2.getStructuringElement(cv2.MORPH_RECT, 
+                                                (border_thickness, border_thickness))
+            else:
+                kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, 
+                                                (border_thickness, border_thickness))
             
             # Dilate the mask to create the border
             dilated_mask = cv2.dilate(mask, kernel, iterations=1)
 
-            # Smooth the outer edge of the dilated mask
-            smoothed_mask = cv2.GaussianBlur(dilated_mask, (0, 0), 
-                                           sigmaX=border_thickness / 2)
-            smoothed_mask = cv2.threshold(smoothed_mask, 128, 255, 
-                                        cv2.THRESH_BINARY)[1]
-
-            # Subtract the original mask to get only the border
-            border_mask = smoothed_mask - mask
+            # Only smooth the border for non-rectangular images
+            if is_rectangular:
+                smoothed_mask = dilated_mask
+            else:
+                # Smooth the outer edge of the dilated mask
+                smoothed_mask = cv2.GaussianBlur(dilated_mask, (0, 0), 
+                                               sigmaX=border_thickness / 2)
+                smoothed_mask = cv2.threshold(smoothed_mask, 128, 255, 
+                                            cv2.THRESH_BINARY)[1]
 
             # Create a new image for the border
             border_image = Image.new("RGBA", new_image.size, (0, 0, 0, 0))
@@ -95,7 +105,7 @@ def add_margin_and_border(input_path, output_path, margin_size, border_thickness
             # Apply the border color to the border mask
             for y in range(border_image.height):
                 for x in range(border_image.width):
-                    if border_mask[y, x]:
+                    if smoothed_mask[y, x]:
                         border_pixels[x, y] = border_color
 
             # Composite the original image and the border

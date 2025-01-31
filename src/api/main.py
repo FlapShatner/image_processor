@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 import tempfile
 import os
 import shutil
@@ -9,6 +10,15 @@ from image_processor.border_processor import BorderProcessingError
 from pathlib import Path
 
 app = FastAPI(title="Image Border Processor API")
+
+# Add CORS middleware configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 
 def cleanup_temp_dir(temp_dir: str):
     """Cleanup temporary directory and its contents"""
@@ -22,10 +32,10 @@ async def read_root():
 async def process_image(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    margin_size: int = 200,
     border_thickness: int = 100,
-    border_color: str = "255,255,255,255"
+    border_color: str = "255,255,255,255",
 ):
+    margin_size = border_thickness + 20
     # Create temporary directory outside the context manager
     temp_dir = tempfile.mkdtemp()
     try:
