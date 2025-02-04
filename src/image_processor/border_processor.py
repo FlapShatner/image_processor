@@ -79,8 +79,10 @@ def add_margin_and_border(input_path, output_path, margin_size, border_thickness
 
             # Create kernel for border - use rectangle for rectangular images, ellipse for others
             if is_rectangular:
+                # Use half the border thickness for rectangular images
+                adjusted_thickness = border_thickness // 3
                 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, 
-                                                (border_thickness, border_thickness))
+                                                (adjusted_thickness, adjusted_thickness))
             else:
                 kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, 
                                                 (border_thickness, border_thickness))
@@ -122,7 +124,7 @@ def add_margin_and_border(input_path, output_path, margin_size, border_thickness
             
             metadata = update_processing_history(metadata, "add_margin_and_border", {
                 "margin_size": margin_size,
-                "border_thickness": border_thickness,
+                "border_thickness": adjusted_thickness if is_rectangular else border_thickness,
                 "border_color": border_color
             })
 
